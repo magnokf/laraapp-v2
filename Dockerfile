@@ -3,7 +3,7 @@ FROM php:8.3-fpm-alpine
 ARG HOST_USER_ID=1000
 ARG HOST_GROUP_ID=1000
 
-# Install necessary packages and PHP extensions
+# Install system dependencies
 RUN apk add --no-cache \
     git \
     zip \
@@ -14,9 +14,12 @@ RUN apk add --no-cache \
     freetype-dev \
     icu-dev \
     linux-headers \
-    shadow \
-    $PHPIZE_DEPS \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    nodejs \
+    npm \
+    $PHPIZE_DEPS
+
+# Install PHP extensions
+RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
         bcmath \
