@@ -5,8 +5,11 @@ export default function GuestLayout({ children }) {
     return (
         <div className="flex min-h-screen flex-col items-center bg-gray-100 pt-6 sm:justify-center sm:pt-0">
             <div>
+                <h3 className="text-2xl font-semibold text-gray-900 text-center">
+                    Acesso ao Sistema
+                </h3>
                 <Link href="/">
-                    <ApplicationLogo className="h-20 w-20 fill-current text-gray-500" />
+                    página inicial
                 </Link>
             </div>
 
