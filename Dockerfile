@@ -14,16 +14,19 @@ RUN apk add --no-cache \
     freetype-dev \
     icu-dev \
     linux-headers \
-    nodejs \
-    npm \
+    postgresql-dev \
+    postgresql-libs \
+    libpq-dev \
     shadow \
     $PHPIZE_DEPS
 
-# Install PHP extensions
-RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
+# Install PHP extensions including pdo_pgsql
+RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
         pdo_pgsql \
+        pgsql \
         bcmath \
         opcache \
         zip \
