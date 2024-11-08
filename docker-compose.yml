@@ -8,8 +8,6 @@ services:
       - ./nested:/var/www/nested
     depends_on:
       - php
-    networks:
-        - laravel-network
 
   php:
     build:
@@ -21,8 +19,7 @@ services:
     volumes:
       - ./nested:/var/www/nested
     working_dir: /var/www/nested
-    networks:
-        - laravel-network
+
 
   vite:
     build:
@@ -39,8 +36,7 @@ services:
       - NODE_ENV=development
     working_dir: /var/www/nested
     command: sh -c "npm install && npm run dev -- --host"
-    networks:
-        - laravel-network
+
 
   redis:
     image: redis:alpine
@@ -49,8 +45,7 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
-    networks:
-        - laravel-network
+
 
   pgsql:
     image: postgres:16-alpine
@@ -67,8 +62,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-        - laravel-network
 
 volumes:
   redis_data:
