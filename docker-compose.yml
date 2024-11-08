@@ -8,6 +8,8 @@ services:
       - ./nested:/var/www/nested
     depends_on:
       - php
+    networks:
+        - laravel-network
 
   php:
     build:
@@ -19,6 +21,8 @@ services:
     volumes:
       - ./nested:/var/www/nested
     working_dir: /var/www/nested
+    networks:
+        - laravel-network
 
   vite:
     build:
@@ -32,9 +36,43 @@ services:
     ports:
       - "5173:5173"
     environment:
-      - NPM_CONFIG_CACHE=/tmp/.npm
+      - NODE_ENV=development
     working_dir: /var/www/nested
     command: sh -c "npm install && npm run dev -- --host"
+    networks:
+        - laravel-network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+        - laravel-network
+
+  pgsql:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=laravel_db
+      - POSTGRES_USER=laravel
+      - POSTGRES_PASSWORD=secret
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U laravel" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+        - laravel-network
+
+volumes:
+  redis_data:
+  postgres_data:
 
 networks:
   default:
