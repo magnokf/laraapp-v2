@@ -3,7 +3,7 @@ FROM php:8.3-fpm-alpine
 ARG HOST_USER_ID=1000
 ARG HOST_GROUP_ID=1000
 
-# Install system dependencies
+# Install system dependencies including shadow package
 RUN apk add --no-cache \
     git \
     zip \
@@ -16,6 +16,7 @@ RUN apk add --no-cache \
     linux-headers \
     nodejs \
     npm \
+    shadow \  # Adicionado para ter usermod e groupmod
     $PHPIZE_DEPS
 
 # Install PHP extensions
