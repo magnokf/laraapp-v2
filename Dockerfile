@@ -16,7 +16,7 @@ RUN apk add --no-cache \
     linux-headers \
     nodejs \
     npm \
-    shadow \  # Adicionado para ter usermod e groupmod
+    shadow \
     $PHPIZE_DEPS
 
 # Install PHP extensions
