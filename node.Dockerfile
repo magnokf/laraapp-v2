@@ -12,7 +12,7 @@ RUN deluser --remove-home node \
 WORKDIR /var/www/nested
 
 # Mudar para o usuário node
-USER node
+USER 1000:1000
 
 # Comando padrão
 CMD ["npm", "run", "dev", "--", "--host"]
