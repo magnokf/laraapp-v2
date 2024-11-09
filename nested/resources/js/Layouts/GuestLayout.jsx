@@ -8,7 +8,7 @@ export default function GuestLayout({ children }) {
                 <h3 className="text-2xl font-semibold text-gray-900 text-center">
                     Acesso ao Sistema
                 </h3>
-                <Link href="/">
+                <Link href={route('welcome')}>
                     página inicial
                 </Link>
             </div>
