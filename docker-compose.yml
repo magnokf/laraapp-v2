@@ -36,6 +36,8 @@ services:
       - NODE_ENV=development
     working_dir: /var/www/nested
     command: sh -c "npm install && npm run dev -- --host"
+    depends_on:
+      - php
 
 
   redis:
