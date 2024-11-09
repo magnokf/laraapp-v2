@@ -18,9 +18,12 @@ RUN apk add --no-cache \
     postgresql-libs \
     libpq-dev \
     shadow \
+    # Adiciona dependências para SOAP e LDAP
+    libxml2-dev \
+    openldap-dev \
     $PHPIZE_DEPS
 
-# Install PHP extensions including pdo_pgsql
+# Install PHP extensions including pdo_pgsql, soap, and ldap
 RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
@@ -32,6 +35,8 @@ RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
         zip \
         gd \
         intl \
+        soap \
+        ldap \
     && pecl install redis \
     && docker-php-ext-enable redis
 
