@@ -3,7 +3,7 @@ FROM php:8.3-fpm-alpine
 ARG HOST_USER_ID=1000
 ARG HOST_GROUP_ID=1000
 
-# Install necessary packages and PHP extensions
+# Install system dependencies including shadow package
 RUN apk add --no-cache \
     git \
     zip \
@@ -14,16 +14,29 @@ RUN apk add --no-cache \
     freetype-dev \
     icu-dev \
     linux-headers \
+    postgresql-dev \
+    postgresql-libs \
+    libpq-dev \
     shadow \
-    $PHPIZE_DEPS \
+    # Adiciona dependências para SOAP e LDAP
+    libxml2-dev \
+    openldap-dev \
+    $PHPIZE_DEPS
+
+# Install PHP extensions including pdo_pgsql, soap, and ldap
+RUN docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo_mysql \
+        pdo_pgsql \
+        pgsql \
         bcmath \
         opcache \
         zip \
         gd \
         intl \
+        soap \
+        ldap \
     && pecl install redis \
     && docker-php-ext-enable redis
 
