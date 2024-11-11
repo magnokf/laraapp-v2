@@ -18,6 +18,9 @@ services:
         HOST_GROUP_ID: 1000
     volumes:
       - ./nested:/var/www/nested
+      - ./nested/storage:/var/www/nested/storage
+      - ./nested/vendor:/var/www/nested/vendor
+      - ./nested/node_modules:/var/www/nested/node_modules
     working_dir: /var/www/nested
 
 
@@ -35,7 +38,7 @@ services:
     environment:
       - NODE_ENV=development
     working_dir: /var/www/nested
-    command: sh -c "npm install && npm run dev -- --host"
+#    command: sh -c "npm install && npm run dev -- --host"
     depends_on:
       - php
 
