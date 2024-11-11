@@ -28,6 +28,9 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
 
+volumes:
+  redis_data:
+
 networks:
   default:
     driver: bridge
