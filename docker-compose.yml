@@ -12,36 +12,22 @@ services:
   php:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: dev.Dockerfile
       args:
         HOST_USER_ID: 1000
         HOST_GROUP_ID: 1000
-    volumes:
-      - ./nested:/var/www/nested
-      - ./nested/storage:/var/www/nested/storage
-      - ./nested/vendor:/var/www/nested/vendor
-      - ./nested/node_modules:/var/www/nested/node_modules
-    working_dir: /var/www/nested
-
-
-  vite:
-    build:
-      context: .
-      dockerfile: node.Dockerfile
-      args:
-        HOST_USER_ID: 1000
-        HOST_GROUP_ID: 1000
-    volumes:
-      - ./nested:/var/www/nested
+    environment:
+      - APP_ENV=local
+      - VITE_BASE_URL=http://localhost:5173
+      - APP_URL=http://localhost
+      - ASSET_URL=http://localhost
     ports:
       - "5173:5173"
-    environment:
-      - NODE_ENV=development
+    volumes:
+      - ./nested:/var/www/nested
+      - node_modules:/var/www/nested/node_modules:delegated
+      - npm_cache:/home/www-data/.npm:delegated
     working_dir: /var/www/nested
-#    command: sh -c "npm install && npm run dev -- --host"
-    depends_on:
-      - php
-
 
   redis:
     image: redis:alpine
@@ -50,7 +36,6 @@ services:
     volumes:
       - redis_data:/data
     command: redis-server --appendonly yes
-
 
   pgsql:
     image: postgres:16-alpine
@@ -72,6 +57,14 @@ services:
 volumes:
   redis_data:
   postgres_data:
+  node_modules:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/nested/node_modules
+  npm_cache:
+    driver: local
 
 networks:
   default:

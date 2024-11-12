@@ -18,9 +18,11 @@ RUN apk add --no-cache \
     postgresql-libs \
     libpq-dev \
     shadow \
-    # Adiciona dependências para SOAP e LDAP
     libxml2-dev \
     openldap-dev \
+    # Node.js e npm
+    nodejs \
+    npm \
     $PHPIZE_DEPS
 
 # Install PHP extensions including pdo_pgsql, soap, and ldap
@@ -53,9 +55,38 @@ RUN echo "upload_max_filesize = 50M" >> $PHP_INI_DIR/conf.d/custom.ini \
     && echo "max_execution_time = 600" >> $PHP_INI_DIR/conf.d/custom.ini \
     && echo "default_socket_timeout = 600" >> $PHP_INI_DIR/conf.d/custom.ini
 
-# Setup user with correct permissions
+# Configurar npm globalmente
+RUN mkdir -p /usr/local/lib/node_modules \
+    && chmod -R 777 /usr/local/lib/node_modules \
+    && npm install -g npm@latest \
+    && npm config set cache /home/www-data/.npm --global \
+    && npm config set prefer-offline true --global \
+    && npm config set fund false --global \
+    && npm config set audit false --global \
+    && npm config set update-notifier false --global
+
+# Configure PHP-FPM
+RUN echo "Creating PHP-FPM configuration..." \
+    && echo "[www]" > /usr/local/etc/php-fpm.d/www.conf \
+    && echo "user = www-data" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "group = www-data" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "listen = 9000" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_children = 5" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.start_servers = 2" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.min_spare_servers = 1" >> /usr/local/etc/php-fpm.d/www.conf \
+    && echo "pm.max_spare_servers = 3" >> /usr/local/etc/php-fpm.d/www.conf
+
+# Setup user and permissions
 RUN usermod -u ${HOST_USER_ID} www-data \
-    && groupmod -g ${HOST_GROUP_ID} www-data
+    && groupmod -g ${HOST_GROUP_ID} www-data \
+    && mkdir -p /home/www-data \
+    && chown -R www-data:www-data /home/www-data \
+    && mkdir -p /.npm \
+    && chown -R www-data:www-data /.npm \
+    && mkdir -p /.config \
+    && chown -R www-data:www-data /.config \
+    && chown -R www-data:www-data /usr/local/lib/node_modules
 
 # Copy and setup entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
@@ -66,6 +97,10 @@ RUN mkdir -p /var/www/nested \
     && chown -R www-data:www-data /var/www/nested
 
 WORKDIR /var/www/nested
+
+EXPOSE 5173 9000
+
+USER www-data
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 CMD ["php-fpm"]

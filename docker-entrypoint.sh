@@ -1,31 +1,42 @@
 #!/bin/sh
 set -e
 
-echo "🔧 Configurando permissões..."
+echo "🔧 Configurando ambiente..."
 
-# Cria as pastas necessárias para o Laravel e define as permissões corretas
-mkdir -p /var/www/nested/storage/framework/{views,cache,sessions}
-mkdir -p /var/www/nested/storage/logs
-mkdir -p /var/www/nested/bootstrap/cache
+if [ "$1" = "php-fpm" ] && [ "$APP_ENV" = "local" ]; then
+    cd /var/www/nested
 
-# Seta permissões para todos os diretórios do Laravel
-find /var/www/nested -type f -exec chmod 644 {} \;
-find /var/www/nested -type d -exec chmod 755 {} \;
+    # Garante permissões corretas para node_modules
+    if [ ! -d "node_modules" ]; then
+        mkdir -p node_modules
+    fi
+    chown -R www-data:www-data node_modules
 
-# Seta permissões para storage e bootstrap/cache
-chmod -R 775 /var/www/nested/storage
-chmod -R 775 /var/www/nested/bootstrap/cache
+    echo "📦 Instalando dependências npm..."
+    # Usa npm ci que é mais rápido que npm install
+    if [ -f "package-lock.json" ]; then
+        npm ci --no-audit --no-fund
+    else
+        npm install --no-audit --no-fund
+    fi
 
+    # Verifica se precisa gerar o Ziggy
+    if [ ! -f "resources/js/ziggy.js" ] || [ "routes/web.php" -nt "resources/js/ziggy.js" ]; then
+        echo "🛣️ Gerando rotas do Ziggy..."
+        php artisan ziggy:generate resources/js/ziggy.js
+    fi
 
-# Garante que os arquivos pertencem ao usuário www-data
-chown -R www-data:www-data /var/www/nested
+    # Verifica se precisa fazer o build
+    if [ ! -d "public/build" ] || [ "package.json" -nt "public/build/manifest.json" ]; then
+        echo "🏗️ Gerando build..."
+        npm run build
+    fi
 
-echo "✅ Permissões configuradas com sucesso!"
+    echo "🚀 Iniciando Vite development server..."
+    node node_modules/.bin/vite --host &
+    echo "✅ Vite iniciado em background"
 
-# Verifica as permissoes dos diretorios criticos
-echo "📂 Verificando permissões de diretórios críticos:"
-ls -la /var/www/nested/public
-ls -la /var/www/nested/storage
-ls -la /var/www/nested/bootstrap/cache
+    cd -
+fi
 
 exec "$@"
