@@ -19,6 +19,12 @@ services:
     volumes:
       - ./nested:/var/www/nested
     working_dir: /var/www/nested
+    environment:
+      - DB_HOST=pgsql
+      - DB_PORT=5432
+      - DB_DATABASE=database_laravel
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=secret
 
   redis:
     image: redis:alpine
@@ -28,8 +34,25 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
 
+  pgsql:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=database_laravel
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=secret
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   redis_data:
+  postgres_data:
 
 networks:
   default:
